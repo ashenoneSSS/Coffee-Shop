@@ -1,0 +1,65 @@
+groups:
+  - name: coffee_shop
+    rules:
+      - alert: OrdersQueueTooLong
+        expr: sum(rabbitmq_queue_messages{queue="orders"}) > 10
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Черга замовлень надто довга"
+          description: "У черзі {{ $value }} замовлень, бариста не встигає."
+
+      - alert: InvalidOrdersDetected
+        expr: sum(rabbitmq_queue_messages{queue="orders.invalid"}) > 0
+        for: 5s
+        labels:
+          severity: warning
+        annotations:
+          summary: "З'явились зіпсовані повідомлення"
+          description: "У черзі orders.invalid {{ $value }} повідомлень, їх треба перевірити."
+
+      - alert: BaristaServiceDown
+        expr: up{job="barista-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "barista-service не працює"
+          description: "Замовлення приймаються, але не виконуються."
+
+      - alert: OrderServiceDown
+        expr: up{job="order-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "order-service не працює"
+          description: "Система не може приймати нові замовлення."
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL не працює"
+          description: "Виконані замовлення неможливо зберегти, вони очікують у черзі."
+
+      - alert: AuthServiceDown
+        expr: up{job="auth-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "auth-service не працює"
+          description: "Користувачі не можуть отримати токен для входу."
+
+      - alert: RabbitMQDown
+        expr: up{job="rabbitmq"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ не працює"
+          description: "Черга замовлень недоступна."
